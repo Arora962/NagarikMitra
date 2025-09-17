@@ -34,13 +34,24 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 const REPORTS_KEY = 'CIVIC_REPORTS';
 
 /** Helper small UI components **/
-const Chip = ({ children, style }) => (
+type ChipProps = {
+  children: React.ReactNode;
+  style?: object;
+};
+
+const Chip = ({ children, style }: ChipProps) => (
   <View style={[styles.chip, style]}>
     <Text style={styles.chipText}>{children}</Text>
   </View>
 );
 
-const Header = ({ mode, setMode, total }) => (
+type HeaderProps = {
+  mode: 'citizen' | 'admin';
+  setMode: React.Dispatch<React.SetStateAction<'citizen' | 'admin'>>;
+  total: number;
+};
+
+const Header = ({ mode, setMode, total }: HeaderProps) => (
   <View style={styles.header}>
     <View>
       <Text style={styles.appTitle}>NagrikMitra</Text>
@@ -70,14 +81,24 @@ const Header = ({ mode, setMode, total }) => (
 );
 
 /** Main App **/
+type Report = {
+  id: string;
+  photoUri: string | null;
+  location: { latitude: number; longitude: number } | null;
+  description: string;
+  createdAt: string;
+  status: string;
+  department: string;
+};
+
 const App = () => {
-  const [photoUri, setPhotoUri] = useState(null);
-  const [location, setLocation] = useState(null);
-  const [description, setDescription] = useState('');
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState('citizen'); // 'citizen' | 'admin'
-  const [filter, setFilter] = useState('All');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [description, setDescription] = useState<string>('');
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [mode, setMode] = useState<'citizen' | 'admin'>('citizen');
+  const [filter, setFilter] = useState<string>('All');
 
   useEffect(() => {
     loadReports();
@@ -92,7 +113,7 @@ const App = () => {
     }
   };
 
-  const saveReports = async (newReports) => {
+  const saveReports = async (newReports: any[]) => {
     try {
       setReports(newReports);
       await AsyncStorage.setItem(REPORTS_KEY, JSON.stringify(newReports));
@@ -167,7 +188,7 @@ const App = () => {
     Alert.alert('Submitted', 'Report submitted — thank you for helping your city.');
   };
 
-  const advanceStatus = async (id) => {
+  const advanceStatus = async (id: string) => {
     const order = ['Reported', 'Acknowledged', 'In Progress', 'Resolved'];
     const updated = reports.map((r) => {
       if (r.id === id) {
@@ -180,12 +201,12 @@ const App = () => {
     await saveReports(updated);
   };
 
-  const assignDept = async (id, dept) => {
+  const assignDept = async (id: string, dept: string) => {
     const updated = reports.map((r) => (r.id === id ? { ...r, department: dept } : r));
     await saveReports(updated);
   };
 
-  const deleteReport = async (id) => {
+  const deleteReport = async (id: string) => {
     Alert.alert('Delete report', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -201,9 +222,9 @@ const App = () => {
 
   const filteredReports = reports.filter((r) => (filter === 'All' ? true : r.status === filter));
 
-  const renderReport = ({ item }) => (
+  const renderReport = ({ item }: { item: Report }) => (
     <View style={styles.reportItem}>
-      <Image source={{ uri: item.photoUri }} style={styles.reportImage} />
+      <Image source={{ uri: item.photoUri ?? undefined }} style={styles.reportImage} />
       <View style={{ flex: 1, marginLeft: 10 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text style={styles.reportDesc} numberOfLines={2}>{item.description}</Text>
